@@ -43,6 +43,16 @@ function Quote-BashSingle {
     return "'" + $Value.Replace("'", "'\''") + "'"
 }
 
+function Invoke-RemoteSudo {
+    param([string]$Command)
+    if ($Password -ne "") {
+        $quotedPassword = Quote-BashSingle $Password
+        Invoke-Plink "printf '%s\n' $quotedPassword | sudo -S sh -c $(Quote-BashSingle $Command)"
+    } else {
+        Invoke-Plink "sudo sh -c $(Quote-BashSingle $Command)"
+    }
+}
+
 Write-Host "Preparing remote directory $RemoteDir ..."
 Invoke-Plink "mkdir -p '$RemoteDir' '$RemoteDir/6axis_eni'"
 
@@ -81,12 +91,12 @@ if ($Build) {
 
 if ($RunDryCheck) {
     Write-Host "Running dry check on ETX ..."
-    Invoke-Plink "cd '$RemoteDir' && ./etx_6axis_csp_demo --eni ENI.xml --axes 6"
+    Invoke-RemoteSudo "cd '$RemoteDir' && ./etx_6axis_csp_demo --eni ENI.xml --axes 6"
 }
 
 if ($RunMotion) {
     Write-Host "Running conservative 6-axis CSP motion on ETX ..."
-    Invoke-Plink "cd '$RemoteDir' && ./etx_6axis_csp_demo --eni ENI.xml --axes 6 --enable-motion --cycles 1 --distance 1000 --feed 500 --accel 1000 --decel 1000"
+    Invoke-RemoteSudo "cd '$RemoteDir' && ./etx_6axis_csp_demo --eni ENI.xml --axes 6 --enable-motion --cycles 1 --distance 1000 --feed 500 --accel 1000 --decel 1000"
 }
 
 Write-Host "Done."

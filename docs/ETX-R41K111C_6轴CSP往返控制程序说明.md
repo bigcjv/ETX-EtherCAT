@@ -94,6 +94,14 @@ make clean
 make
 ```
 
+运行程序需要硬件/实时进程权限。若直接运行出现：
+
+```text
+ECPWInit err=10
+```
+
+这表示 `ECP_ERR_PERMISSION_DENIED`，请使用 `sudo` 运行。
+
 如果 ETX SDK 目录不同：
 
 ```bash
@@ -151,19 +159,19 @@ C:\Program Files\PuTTY\pscp.exe
 
 ```bash
 cd /home/tpm/etx_6axis_csp
-./etx_6axis_csp_demo --eni ENI.xml --axes 6
+sudo ./etx_6axis_csp_demo --eni ENI.xml --axes 6
 ```
 
 低速 1 次往返：
 
 ```bash
-./etx_6axis_csp_demo --eni ENI.xml --axes 6 --enable-motion --cycles 1 --distance 100 --feed 100 --accel 200 --decel 200
+sudo ./etx_6axis_csp_demo --eni ENI.xml --axes 6 --enable-motion --cycles 1 --distance 100 --feed 100 --accel 200 --decel 200
 ```
 
 默认参数 1 次往返：
 
 ```bash
-./etx_6axis_csp_demo --eni ENI.xml --axes 6 --enable-motion
+sudo ./etx_6axis_csp_demo --eni ENI.xml --axes 6 --enable-motion
 ```
 
 常用参数：
@@ -189,4 +197,3 @@ cd /home/tpm/etx_6axis_csp
 4. 如果 Servo ON 失败，检查松下驱动器报警、安全输入、主电源、限位。
 5. 如果方向不对，先统一驱动器参数和机械方向，不要在多个软件层反号。
 6. 程序异常退出时，`EcpwSession` 析构会调用 `ECPWDisconnect()`，手册说明该动作会 Servo OFF all axes。
-
