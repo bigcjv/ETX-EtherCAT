@@ -1,17 +1,64 @@
-# ETX-R41K111C 6 轴松下 A6B CSP 往返控制程序说明
+# ETX-R41K111C 6轴 CSP 同步往返控制程序说明
 
 ## 目标
 
-本程序用于 ETX-R41K111C 的 Scenario 1：自研 C++ 程序直接运行在 ETX 内部 Linux 上，通过 `libECPW.so` 作为 EtherCAT Master 控制 6 个 Panasonic MINAS A6B EtherCAT 伺服驱动器。
+本程序用于 ETX-R41K111C 的 Scenario 1：C++ 程序直接运行在 ETX 内部 Linux 上，通过 TPM `libECPW.so` 控制 6 个 Panasonic MINAS A6B EtherCAT 伺服驱动器。
 
-当前功能：
+当前程序使用：
 
-- 使用 `6axis_eni/ENI.xml` 连接 6 轴 EtherCAT 网络。
-- 校验 6 个从站均为 CiA402 驱动器。
-- 检查并切换每轴到 CSP，`ECP_MOP_CSP`。
-- 可选清报警、Servo ON、当前位置置零。
-- 使用 `ECPWPositioning` 在 CSP 模式下做简单相对往返运动。
-- 默认不运动，必须显式加 `--enable-motion`。
+- `6axis_eni/ENI.xml` 连接 6 轴 EtherCAT 网络。
+- `ECPWInit()` / `ECPWConnect()` 初始化主站。
+- `ECPWGetSlvConf()` 校验 6 个从站均为 CiA402 驱动器。
+- `ECPWGetIsSupportMOP(..., ECP_MOP_CSP)` 检查 CSP 支持。
+- `ECPWSetMOP(..., ECP_MOP_CSP)` 将每个轴切到 CSP。
+- `ECPWGroupAddAxis()` 将 6 个轴加入 Group 0。
+- `ECPWGroupMoveLin()` 让 6 个轴同步做相对往返运动。
+
+程序默认不会运动，必须显式加 `--enable-motion`。
+
+## 为什么之前看起来不同步
+
+第一版程序是逐轴调用：
+
+```cpp
+ECPWPositioning(axis1)
+ECPWPositioning(axis2)
+...
+ECPWPositioning(axis6)
+```
+
+并且 `cbConfig=NULL`，等价于 `WAIT_COMPLETE`。这意味着 Axis1 完成后才启动 Axis2，Axis2 完成后才启动 Axis3，所以它不是严格同步运动。
+
+当前版本改为：
+
+```cpp
+ECPWGroupMoveLin(group0, ...)
+```
+
+一次命令同时下发 6 个轴的位置数组，才是同步往返。
+
+## 为什么 `distance=100000` 动得不明显
+
+你的命令：
+
+```bash
+sudo ./etx_6axis_csp_demo --eni ENI.xml --axes 6 --enable-motion --cycles 3 --distance 100000 --feed 4000000 --accel 4000000 --decel 4000000
+```
+
+从输出看，每次位置确实变化了约 `100000` user unit，说明电机在执行命令。
+
+但肉眼不明显通常有两个原因：
+
+- A6B 的用户单位可能接近编码器 count，若一圈是几百万 count，`100000` 只是一小段角度。
+- `feed=4000000` 太快，运动时间很短，肉眼可能只看到轻微抖动或一下就结束。
+
+首次观察建议降低速度并增加位移，例如：
+
+```bash
+sudo ./etx_6axis_csp_demo --eni ENI.xml --axes 6 --enable-motion --cycles 3 --distance 1000000 --feed 200000 --accel 200000 --decel 200000
+```
+
+如果机械没有负载且确认安全，也可以逐步增加 `distance`。
 
 ## 目录结构
 
@@ -36,47 +83,7 @@ scripts/
   deploy_etx_6axis_csp.ps1
 ```
 
-## 程序设计
-
-`EcpwSession`：
-
-- 调用 `ECPWInit()` 初始化 ECPW。
-- 可选调用 `ECPWSetENIFileName()`。
-- 调用 `ECPWConnect()` 连接 EtherCAT 从站。
-- 析构时自动 `ECPWDisconnect()` 和 `ECPWClose()`。
-
-`AxisController`：
-
-- 用 `ECP_SLV_TAG_TYPE::ECP_TAG_SERIAL` 按 EtherCAT 物理顺序识别从站。
-- 默认 6 台 A6B 对应 StationTag 1 到 6，每台 `axisNo=0`。
-- 调用 `ECPWGetSlvConf()` 校验 CiA402。
-- 调用 `ECPWGetIsSupportMOP(..., ECP_MOP_CSP)` 和 `ECPWSetMOP(..., ECP_MOP_CSP)`。
-- 调用 `ECPWServoON()`、`ECPWPositioning()`、`ECPWStop()`、`ECPWServoOFF()`。
-
-`AppConfig`：
-
-- 解析命令行参数。
-- 控制 ENI 名称、轴数、站号、位移、速度、加速度、循环次数。
-
-## 安全策略
-
-程序默认只连接和检查，不会 Servo ON，也不会运动。
-
-真正运动必须加：
-
-```bash
---enable-motion
-```
-
-首次运行建议使用极小位移和低速度：
-
-```bash
-./etx_6axis_csp_demo --eni ENI.xml --axes 6 --enable-motion --cycles 1 --distance 100 --feed 100 --accel 200 --decel 200
-```
-
-确认方向、限位、急停、安全回路正常后，再逐步增大参数。
-
-## 在 ETX 上编译
+## 编译
 
 ETX Linux 上需要存在：
 
@@ -86,7 +93,7 @@ ETX Linux 上需要存在：
 /usr/lib/ECPL/ENI/ENI.xml
 ```
 
-编译命令：
+编译：
 
 ```bash
 cd /home/tpm/etx_6axis_csp
@@ -94,87 +101,50 @@ make clean
 make
 ```
 
-运行程序需要硬件/实时进程权限。若直接运行出现：
+如果直接运行出现：
 
 ```text
 ECPWInit err=10
 ```
 
-这表示 `ECP_ERR_PERMISSION_DENIED`，请使用 `sudo` 运行。
+表示 `ECP_ERR_PERMISSION_DENIED`，需要用 `sudo` 运行。
 
-如果 ETX SDK 目录不同：
+## Win11 部署到 ETX
 
-```bash
-make ETX_HOME=/实际/ETX-R4K111/目录
-```
-
-## 从 Win11 部署到 ETX
-
-当前 Win11 没有系统 `ssh/scp`，脚本使用 PuTTY：
-
-```text
-C:\Program Files\PuTTY\plink.exe
-C:\Program Files\PuTTY\pscp.exe
-```
-
-部署源码和 ENI：
+部署并编译：
 
 ```powershell
-.\scripts\deploy_etx_6axis_csp.ps1
+.\scripts\deploy_etx_6axis_csp.ps1 -Password "123" -Build
 ```
 
-部署并在 ETX 编译：
+部署、编译并做不运动检查：
 
 ```powershell
-.\scripts\deploy_etx_6axis_csp.ps1 -Build
+.\scripts\deploy_etx_6axis_csp.ps1 -Password "123" -Build -RunDryCheck
 ```
 
-部署、编译并做干运行检查：
+部署、编译并运行默认低速同步往返：
 
 ```powershell
-.\scripts\deploy_etx_6axis_csp.ps1 -Build -RunDryCheck
+.\scripts\deploy_etx_6axis_csp.ps1 -Password "123" -Build -RunMotion
 ```
 
-部署、编译并运行低速往返：
+## 手动运行
 
-```powershell
-.\scripts\deploy_etx_6axis_csp.ps1 -Build -RunMotion
-```
-
-脚本会把本地：
-
-```text
-6axis_eni/ENI.xml
-```
-
-上传到 ETX，并复制为：
-
-```text
-/usr/lib/ECPL/ENI/ENI.xml
-```
-
-## 手动运行命令
-
-只连接和检查，不运动：
+只检查，不运动：
 
 ```bash
 cd /home/tpm/etx_6axis_csp
 sudo ./etx_6axis_csp_demo --eni ENI.xml --axes 6
 ```
 
-低速 1 次往返：
+同步低速往返：
 
 ```bash
-sudo ./etx_6axis_csp_demo --eni ENI.xml --axes 6 --enable-motion --cycles 1 --distance 100 --feed 100 --accel 200 --decel 200
+sudo ./etx_6axis_csp_demo --eni ENI.xml --axes 6 --enable-motion --cycles 3 --distance 1000000 --feed 200000 --accel 200000 --decel 200000
 ```
 
-默认参数 1 次往返：
-
-```bash
-sudo ./etx_6axis_csp_demo --eni ENI.xml --axes 6 --enable-motion
-```
-
-常用参数：
+## 常用参数
 
 ```text
 --axes N             轴数，默认 6
@@ -189,11 +159,11 @@ sudo ./etx_6axis_csp_demo --eni ENI.xml --axes 6 --enable-motion
 --keep-servo-on      程序正常结束后保持 Servo ON
 ```
 
-## 调试建议
+## 安全建议
 
-1. 先运行不带 `--enable-motion` 的干检查。
-2. 如果 `ECPWConnect()` 报错，检查 `/usr/lib/ECPL/ENI/ENI.xml` 是否与实际 6 轴顺序一致。
-3. 如果 `GetIsSupportMOP(CSP)` 失败，检查 ENI/PDO 和 A6B ESI 是否正确。
-4. 如果 Servo ON 失败，检查松下驱动器报警、安全输入、主电源、限位。
-5. 如果方向不对，先统一驱动器参数和机械方向，不要在多个软件层反号。
-6. 程序异常退出时，`EcpwSession` 析构会调用 `ECPWDisconnect()`，手册说明该动作会 Servo OFF all axes。
+1. 先运行不带 `--enable-motion` 的检查。
+2. 第一次运动使用低速度和小位移。
+3. 确认急停、限位、安全回路有效。
+4. 逐轴确认方向后，再运行 6 轴同步。
+5. 如果方向不对，优先修改驱动器/机械方向参数，不要在多层软件里反号。
+
