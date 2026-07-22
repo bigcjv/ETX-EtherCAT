@@ -67,11 +67,13 @@ ETX Linux 关键路径：
 Scenario 1。`etx.service` 和 `etx_6axis_csp_demo` 会争用同一个 EtherCAT 主站，
 严禁同时运行。
 
-截至 2026-07-22，最后一次实测状态是 Scenario 2：
+截至 2026-07-22，250 us 诊断结束后的状态是 Scenario 1：
 
 ```text
-etx.service: enabled, active
-TCP 管理服务: 0.0.0.0:5886
+etx.service: disabled, inactive
+自研程序: inactive
+ETX CycleTime: 500 us
+生效 ENI: ENI_3_fixed_6axis_500us.xml 的部署副本
 ECPW: 3.11.1.0
 ETX server: 01.03.07_20250526
 ETX tools package: 1.2.2.0
@@ -159,8 +161,8 @@ ETX 主站实际周期由以下文件控制：
 }
 ```
 
-该值于 2026-07-22 为重新导出 500 us ENI 准备完成；当前 Scenario 2 服务已启动，
-但新的 500 us DC ENI 尚未替换项目文件，因此尚未执行 OP/dry check 或运动测试。
+该值和六轴 500 us ENI 已在 Scenario 1 完成多次无运动检查。用户随后确认 500 us
+三次同步往返可以运动。250 us 尝试失败后，ETX 已恢复这套 500 us 配置。
 
 `CycleTime` 单位是微秒，ENI 的 `CycleTime0/1` 单位是纳秒。主站和所有
 Sync0 从站必须保持一致：
@@ -169,6 +171,7 @@ Sync0 从站必须保持一致：
 |---|---:|---:|---|
 | 1 ms | `1000` | `1000000` | `DC SYNC0`、`x1` |
 | 500 us | `500` | `500000` | `DC SYNC0`、`x1` |
+| 250 us | `250` | `250000` | `DC SYNC0`、`x1` |
 
 安全修改周期的顺序：
 
@@ -182,9 +185,14 @@ Sync0 从站必须保持一致：
 7. 确认六轴均进入 OP，且没有 DC、WKC、看门狗或 `Err81.0` 错误。
 
 松下 A6B 手册列出的 DC/SM2 周期为 125、250、500、1000、2000、4000、
-8000 和 10000 us，其中 125/250 us 存在控制模式限制。这只是驱动器能力，
-不代表 ETX 在六轴负载下必然稳定。当前正在从 1000 us 基线迁移到 500 us；
-500 us 必须先通过六轴不运动 OP、DC、WKC、看门狗和错误日志检查，再允许运动。
+8000 和 10000 us；普通 CSP 可使用 250 us，但全闭环控制不支持 250 us。这只是
+驱动器能力，不代表 ETX 在六轴负载下必然稳定。
+
+2026-07-22 在当前 ETX/ECPW 3.11.1.0 上两次测试 250 us，均在 `ECPWInit()` 返回
+`6002`（`ECP_ERR_ECAT_SYS`）。日志显示读取到 250 us 后等待 INT0 超时、SPI CRC 为 0，最终
+`ECM_InitLibrary fail`；因此没有执行 Servo ON 或运动。恢复 500 us 后主站重新初始化，
+但 Axis 1 报 `0xFF58`（松下 `Err88.0`，主电源不足电压保护），再次运动前必须先检查
+主回路供电并清除报警。当前禁止 250 us 运动，须由 TPM 确认 ETX 实时硬件/固件支持。
 
 ## 7. Scenario 1 六轴 C++ 程序
 
