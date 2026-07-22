@@ -125,18 +125,17 @@ ECATNavi 连不上”的情况，应分别检查 SSH 凭据、`etx.service` 和 
 7. 保存配置并重新导出 ENI。
 8. 替换 `6axis_eni/ENI.xml`，检查 Git 差异后再部署。
 
-当前 `6axis_eni/ENI.xml` 已重新导出为 DC SYNC0 配置，经解析确认：
+2026-07-22 最新 `6axis_eni/ENI.xml` 已重新导出为 DC SYNC0 配置，但结构化
+校验未通过：
 
 - 包含 6 个 `<DC>` 节点；
-- 每台驱动器 `CycleTime0` 和 `CycleTime1` 均为 `1000000 ns`；
+- Drive 1 的 `CycleTime0/1` 为 `500000 ns`；
+- Drive 2–6 的 `CycleTime0/1` 仍为 `1000000 ns`；
 - Drive 1 是唯一分布式时钟参考，从站 2 到 6 不是参考时钟；
-- 包含 DC 激活值 `0x0300` 和 1,000,000 ns 周期寄存器写入。
+- 六台均有 DC 激活值 `0x0300`，但周期寄存器写入同样是一轴 500 us、五轴 1 ms。
 
-因此当前 ENI 的六轴 Sync0 周期为 1 ms。
-
-2026-07-22 检查 ECATNavi 默认目录 `C:\TPM\ECPW\ENI\ENI.xml` 中新导出的
-文件时，确认它虽有 6 台驱动器，但没有 `<DC>` 节点，不能用于 500 us CSP。
-必须按上述步骤重新导出，不能手改现有 1 ms ENI 的周期字节代替导出。
+因此当前混合周期 ENI 禁止部署。必须重新执行 `Apply to All` 和 `Save`，逐个确认
+Drive 2–6 也显示 500 us 后再导出；不能手改 XML 周期字节代替导出。
 
 ## 6. EtherCAT 通信周期
 
@@ -277,4 +276,5 @@ sudo ./etx_6axis_csp_demo \
 - 六轴不同步时，依次检查 GroupMoveLin、6 个 DC 节点、唯一参考时钟、相同
   Sync0 周期和主站 `CycleTime`，不要先靠修改速度参数掩盖问题。
 
-更多专题说明见 `docs/`。
+500 us 完整设置、ENI 验收、Scenario 1 部署和运动步骤见
+`docs/ETX-R41K111C_六轴500us通信周期设置与验证.md`。更多专题说明见 `docs/`。

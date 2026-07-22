@@ -24,10 +24,13 @@ Date: 2026-07-22
 
 ## Blocked before 500 us dry check
 
-- Repository `6axis_eni/ENI.xml` is a valid six-axis DC ENI, but its cycle is still 1000 us.
-- Newly exported `C:\TPM\ECPW\ENI\ENI.xml` contains six drives but no DC nodes.
+- Current repository and ECATNavi ENI files contain six DC drives, but only Drive 1 is 500 us;
+  Drive 2–6 remain 1000 us.
 - The ETX setting was backed up and changed to 500 us for Scenario 2 export. No ENI was
   installed, and no dry check or motion was executed.
+
+Re-apply `DC SYNC0 x1` to all drives, save, verify Drive 2–6 individually, and export again.
+This mixed-cycle ENI was not deployed.
 
 Scenario 2 preparation has completed. For future repetitions, use:
 
