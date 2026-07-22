@@ -142,6 +142,7 @@ if ($PrepareEniExport) {
     Invoke-Plink "if pgrep -f '[e]tx_6axis_csp_demo' >/dev/null; then echo 'Motion program is active.' >&2; exit 1; fi"
     Set-RemoteCycleTime $CycleTimeUs
     Invoke-RemoteSudo "systemctl enable --now etx.service"
+    Invoke-Plink "for attempt in 1 2 3 4 5 6 7 8 9 10; do ss -lnt | grep -q ':5886' && exit 0; sleep 1; done; exit 1"
     Invoke-Plink "grep -E 'CycleTime|ENABLE_DC' /usr/lib/ECPL/Config/Setting.json; systemctl is-active etx.service; ss -lnt | grep ':5886'"
     Write-Host "Scenario 2 is ready. Re-open Device Settings -> DC, apply DC SYNC0 x1 to all six axes, then export ENI.xml."
     return

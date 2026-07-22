@@ -150,10 +150,13 @@ ETX 主站实际周期由以下文件控制：
 
 ```json
 {
-  "CycleTime": 1000,
+  "CycleTime": 500,
   "ENABLE_DC": true
 }
 ```
+
+该值于 2026-07-22 为重新导出 500 us ENI 准备完成；当前 Scenario 2 服务已启动，
+但新的 500 us DC ENI 尚未替换项目文件，因此尚未执行 OP/dry check 或运动测试。
 
 `CycleTime` 单位是微秒，ENI 的 `CycleTime0/1` 单位是纳秒。主站和所有
 Sync0 从站必须保持一致：
