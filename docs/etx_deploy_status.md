@@ -16,6 +16,7 @@ Date: 2026-07-22
   excluded from this task's commit.
 - Scenario resource state: `etx.service` enabled/active; TCP 5886 listening.
 - ETX `/usr/lib/ECPL/Config/Setting.json`: `CycleTime=500`, `ENABLE_DC=true`.
+- Windows `C:\TPM\ECPW\Config\Setting.json`: `CycleTime=500`, `ENABLE_DC=true`.
 - ETX service log confirms `Cycle time: 500 us`.
 - Updated C++ source uploaded to `/home/tpm/etx_6axis_csp` and built successfully on ARM64.
 - An earlier target-side guard test correctly rejected `--cycle-us 500` before ECPW

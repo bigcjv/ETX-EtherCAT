@@ -4,6 +4,7 @@ param(
     [string]$Password = "",
     [string]$RemoteDir = "/home/tpm/etx_6axis_csp",
     [string]$HostKey = "SHA256:xBzCH8w5lTi3ExQakSZm9lXGXlcDDXBhhNumThbSNGE",
+    [string]$WindowsSettingFile = "C:\TPM\ECPW\Config\Setting.json",
     [ValidateSet(125, 250, 500, 1000, 2000, 4000, 8000, 10000)]
     [int]$CycleTimeUs = 500,
     [switch]$PrepareEniExport,
@@ -129,6 +130,31 @@ function Set-RemoteCycleTime {
     Invoke-RemoteSudo "python3 -c $(Quote-BashSingle $updateSetting)"
 }
 
+function Set-WindowsCycleTime {
+    param([string]$Path, [int]$Microseconds)
+
+    if (Get-Process -ErrorAction SilentlyContinue | Where-Object {
+        $_.ProcessName -match "ECATNavi|ECATScan"
+    }) {
+        throw "Close ECATNavi and ECATScan before changing the Windows cycle setting."
+    }
+    if (!(Test-Path -LiteralPath $Path)) {
+        throw "Windows ECPW setting file not found: $Path"
+    }
+
+    $content = [IO.File]::ReadAllText($Path)
+    $pattern = '("CycleTime"\s*:\s*)[0-9]+'
+    if (![regex]::IsMatch($content, $pattern)) {
+        throw "CycleTime not found in Windows ECPW setting file: $Path"
+    }
+
+    $backup = "$Path.bak.$(Get-Date -Format 'yyyyMMdd_HHmmss')"
+    Copy-Item -LiteralPath $Path -Destination $backup -ErrorAction Stop
+    $updated = [regex]::Replace($content, $pattern, "`${1}$Microseconds", 1)
+    [IO.File]::WriteAllText($Path, $updated, [Text.UTF8Encoding]::new($false))
+    Write-Host "Windows ECPW cycle set to $Microseconds us; backup: $backup"
+}
+
 if ($PrepareEniExport) {
     if (!$ConfirmAxesStoppedAndServoOff) {
         throw "-PrepareEniExport requires -ConfirmAxesStoppedAndServoOff."
@@ -138,6 +164,7 @@ if ($PrepareEniExport) {
     }
 
     Write-Host "Preparing Scenario 2 for a new $CycleTimeUs us ENI export ..."
+    Set-WindowsCycleTime -Path $WindowsSettingFile -Microseconds $CycleTimeUs
     Invoke-RemoteSudo "systemctl stop etx.service"
     Invoke-Plink "if pgrep -f '[e]tx_6axis_csp_demo' >/dev/null; then echo 'Motion program is active.' >&2; exit 1; fi"
     Set-RemoteCycleTime $CycleTimeUs

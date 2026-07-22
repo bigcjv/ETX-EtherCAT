@@ -170,7 +170,8 @@ Sync0 从站必须保持一致：
 
 1. 所有轴 Servo OFF，并停止运动程序。
 2. 停止当前主站占用者：Scenario 2 停 `etx.service`，Scenario 1 停自研程序。
-3. 备份并修改 `/usr/lib/ECPL/Config/Setting.json`。
+3. 备份并修改 ETX `/usr/lib/ECPL/Config/Setting.json`，并同步 Windows
+   `C:\TPM\ECPW\Config\Setting.json`；ECATNavi 的只读 Master Cycle 来自后者。
 4. 在 ECATNavi 中设置同样的 Master Cycle，六轴保持 `DC SYNC0 x1`，重新导出 ENI。
 5. 把新 ENI 部署为 `/usr/lib/ECPL/ENI/ENI.xml`。
 6. 只启动选定的一个主站程序，先执行不运动连接检查。
@@ -215,6 +216,9 @@ docs/                             详细中文操作说明
   -PrepareEniExport `
   -ConfirmAxesStoppedAndServoOff
 ```
+
+该命令会在 ECATNavi/ECATScan 已关闭时分别备份并修改 Windows 与 ETX 的
+`Setting.json`，避免界面 Master Cycle 与 ETX 实际周期不一致。
 
 在 ECATNavi 重新导出并替换 `6axis_eni/ENI.xml` 后，切换到 Scenario 1、备份并
 安装周期配置、编译并执行不运动检查：
