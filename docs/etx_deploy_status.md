@@ -2,6 +2,14 @@
 
 Date: 2026-07-22
 
+## Git status
+
+- `ebed153 feat: guard 500us six-axis control` was pushed to `origin/master`.
+- `7648828 fix: wait for ETX scenario service` was committed locally after the first Scenario 2
+  run exposed a startup-delay false failure.
+- A push attempt then failed because `github.com:443` was unreachable. Retry with
+  `git push origin master`; the local commits are preserved.
+
 ## Completed
 
 - SSH connection to `tpm@192.168.0.10` succeeded with the local credential file, which is
