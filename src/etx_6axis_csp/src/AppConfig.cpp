@@ -1,7 +1,9 @@
 #include "AppConfig.h"
 
+#include <algorithm>
 #include <cstdlib>
 #include <iostream>
+#include <iterator>
 #include <stdexcept>
 #include <string>
 
@@ -45,6 +47,7 @@ void printUsage(const char* programName)
         << "  --axes N                     number of axes/drives (default: 6)\n"
         << "  --first-station N            first EtherCAT serial station (default: 1)\n"
         << "  --axis-no N                  axis number inside each drive (default: 0)\n"
+        << "  --cycle-us US                required master/DC cycle (default: 500)\n"
         << "  --cycles N                   forward/back cycles (default: 1)\n"
         << "  --distance U                 relative distance in user units (default: 1000)\n"
         << "  --feed U_PER_SEC             feed speed in user units/sec (default: 500)\n"
@@ -82,6 +85,8 @@ AppConfig parseArgs(int argc, char** argv)
             config.firstStation = parseInt(argv[++i], "--first-station");
         } else if (arg == "--axis-no" && hasValue(i, argc)) {
             config.axisNo = parseInt(argv[++i], "--axis-no");
+        } else if (arg == "--cycle-us" && hasValue(i, argc)) {
+            config.cycleTimeUs = parseInt(argv[++i], "--cycle-us");
         } else if (arg == "--cycles" && hasValue(i, argc)) {
             config.cycles = parseInt(argv[++i], "--cycles");
         } else if (arg == "--distance" && hasValue(i, argc)) {
@@ -105,6 +110,11 @@ AppConfig parseArgs(int argc, char** argv)
     if (config.cycles <= 0) {
         throw std::runtime_error("--cycles must be greater than zero");
     }
+    constexpr int supportedCycles[] = {125, 250, 500, 1000, 2000, 4000, 8000, 10000};
+    if (std::find(std::begin(supportedCycles), std::end(supportedCycles), config.cycleTimeUs)
+        == std::end(supportedCycles)) {
+        throw std::runtime_error("--cycle-us is not supported by Panasonic A6B DC/SM2");
+    }
     if (config.feed <= 0 || config.accel <= 0 || config.decel <= 0) {
         throw std::runtime_error("--feed, --accel and --decel must be greater than zero");
     }
@@ -114,4 +124,3 @@ AppConfig parseArgs(int argc, char** argv)
 
     return config;
 }
-

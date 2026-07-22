@@ -7,6 +7,7 @@ struct AppConfig {
     int axisCount = 6;
     int firstStation = 1;
     int axisNo = 0;
+    int cycleTimeUs = 500;
     int cycles = 1;
     double distance = 1000.0;
     double feed = 500.0;
@@ -21,4 +22,3 @@ struct AppConfig {
 
 AppConfig parseArgs(int argc, char** argv);
 void printUsage(const char* programName);
-

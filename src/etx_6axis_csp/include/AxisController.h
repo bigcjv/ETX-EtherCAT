@@ -17,8 +17,6 @@ public:
     void prepareCsp(const AppConfig& config) const;
     void servoOn(const AppConfig& config) const;
     void servoOff() const;
-    void stopSmooth() const;
-    void moveRelative(double distance, const AppConfig& config) const;
     void printPosition() const;
 
 private:

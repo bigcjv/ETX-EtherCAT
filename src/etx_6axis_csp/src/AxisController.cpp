@@ -2,9 +2,7 @@
 
 #include "EcpwUtil.h"
 
-#include <cmath>
 #include <cstdio>
-#include <cstring>
 #include <stdexcept>
 #include <utility>
 
@@ -33,6 +31,16 @@ void AxisController::validateCia402() const
     }
     if (axisNo_ < 0 || axisNo_ >= config.AxisNumber) {
         throw std::runtime_error(name_ + " axis number is outside drive AxisNumber");
+    }
+
+    U32 errorCode = 0;
+    throwOnEcpError((name_ + " GetErrorCode").c_str(),
+                    ECPWGetErrorCode(apiSlave(), static_cast<U8>(axisNo_), &errorCode));
+    if (errorCode != 0) {
+        char message[96]{};
+        std::snprintf(message, sizeof(message), "%s reports drive error 0x%08x",
+                      name_.c_str(), errorCode);
+        throw std::runtime_error(message);
     }
 }
 
@@ -75,34 +83,6 @@ void AxisController::servoOff() const
 {
     throwOnEcpError((name_ + " ServoOFF").c_str(),
                     ECPWServoOFF(apiSlave(), static_cast<U8>(axisNo_), 5000, nullptr));
-}
-
-void AxisController::stopSmooth() const
-{
-    const ECP_ERR err = ECPWStop(apiSlave(), static_cast<U8>(axisNo_), ECP_STOP_SMOOTH);
-    if (err != ECP_OK && err != ECP_ERR_NOT_SERVO_ON) {
-        throwOnEcpError((name_ + " StopSmooth").c_str(), err);
-    }
-}
-
-void AxisController::moveRelative(double distance, const AppConfig& config) const
-{
-    ECP_POS_DATA pos{};
-    pos.Position = distance;
-    pos.MotionProfile.Feed = config.feed;
-    pos.MotionProfile.Accel = config.accel;
-    pos.MotionProfile.Decel = config.decel;
-    pos.MotionProfile.VelStart = 0;
-    pos.MotionProfile.VelEnd = 0;
-    pos.MotionProfile.SFactor = 0;
-    pos.MotionProfile.OverlapRate = 0;
-    pos.MotionProfile.CoordType = ECP_COORD_REL;
-    pos.MotionProfile.IsCheckInPos = 1;
-
-    std::printf("%s: move relative %.3f\n", name_.c_str(), distance);
-    throwOnEcpError((name_ + " Positioning").c_str(),
-                    ECPWPositioning(apiSlave(), static_cast<U8>(axisNo_), &pos, nullptr));
-    printPosition();
 }
 
 void AxisController::printPosition() const

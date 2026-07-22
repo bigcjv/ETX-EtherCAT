@@ -134,6 +134,10 @@ ECATNavi 连不上”的情况，应分别检查 SSH 凭据、`etx.service` 和 
 
 因此当前 ENI 的六轴 Sync0 周期为 1 ms。
 
+2026-07-22 检查 ECATNavi 默认目录 `C:\TPM\ECPW\ENI\ENI.xml` 中新导出的
+文件时，确认它虽有 6 台驱动器，但没有 `<DC>` 节点，不能用于 500 us CSP。
+必须按上述步骤重新导出，不能手改现有 1 ms ENI 的周期字节代替导出。
+
 ## 6. EtherCAT 通信周期
 
 ETX 主站实际周期由以下文件控制：
@@ -171,8 +175,8 @@ Sync0 从站必须保持一致：
 
 松下 A6B 手册列出的 DC/SM2 周期为 125、250、500、1000、2000、4000、
 8000 和 10000 us，其中 125/250 us 存在控制模式限制。这只是驱动器能力，
-不代表 ETX 在六轴负载下必然稳定。调试阶段保持 1000 us；测试 500 us 时必须
-同时监测周期抖动、WKC 和错误日志，再考虑更短周期。
+不代表 ETX 在六轴负载下必然稳定。当前正在从 1000 us 基线迁移到 500 us；
+500 us 必须先通过六轴不运动 OP、DC、WKC、看门狗和错误日志检查，再允许运动。
 
 ## 7. Scenario 1 六轴 C++ 程序
 
@@ -187,29 +191,37 @@ docs/                             详细中文操作说明
 
 程序流程：
 
-1. `ECPWInit()`、选择 ENI 并执行 `ECPWConnect()`。
-2. 校验 6 个 CiA402 从站和 CSP 支持。
-3. 使用 `ECPWSetMOP()` 设置 CSP。
-4. 经显式授权后清除报警并 Servo ON。
-5. 把六轴加入 Group 0。
-6. 使用 `ECPWGroupMoveLin()` 同步执行相对正向/反向往返。
-7. 平滑停止、禁用组、Servo OFF、断开并关闭 ECPW。
+1. 在 `ECPWInit()` 前校验 `Setting.json`、ENI 六轴 DC 周期、唯一参考时钟和
+   DC 周期寄存器写入，默认要求 500 us。
+2. `ECPWInit()`、选择 ENI 并执行 `ECPWConnect()`。
+3. 校验 6 个 CiA402 从站、驱动器报警和 CSP 支持。
+4. 使用 `ECPWSetMOP()` 设置 CSP。
+5. 经显式授权后清除报警并 Servo ON。
+6. 把六轴加入 Group 0。
+7. 使用 `ECPWGroupMoveLin()` 同步执行相对正向/反向往返。
+8. 正常或异常退出均平滑停止、禁用组、Servo OFF、断开并关闭 ECPW。
 
 程序只有出现 `--enable-motion` 才会下发运动。
 
-从 Win11 上传源码和 ENI，并在 ARM64 ETX 上编译：
+确认六轴停止并 Servo OFF 后，先为 ECATNavi 的 500 us ENI 导出准备 Scenario 2：
 
 ```powershell
 .\scripts\deploy_etx_6axis_csp.ps1 `
   -Password "<ETX_PASSWORD>" `
-  -Build
+  -CycleTimeUs 500 `
+  -PrepareEniExport `
+  -ConfirmAxesStoppedAndServoOff
 ```
 
-上传、编译并执行不运动连接检查：
+在 ECATNavi 重新导出并替换 `6axis_eni/ENI.xml` 后，切换到 Scenario 1、备份并
+安装周期配置、编译并执行不运动检查：
 
 ```powershell
 .\scripts\deploy_etx_6axis_csp.ps1 `
   -Password "<ETX_PASSWORD>" `
+  -CycleTimeUs 500 `
+  -ConfigureCycleTime `
+  -ActivateScenario1 `
   -Build `
   -RunDryCheck
 ```
@@ -218,7 +230,7 @@ ETX 上手动执行不运动检查：
 
 ```bash
 cd /home/tpm/etx_6axis_csp
-sudo ./etx_6axis_csp_demo --eni ENI.xml --axes 6
+sudo ./etx_6axis_csp_demo --eni ENI.xml --axes 6 --cycle-us 500
 ```
 
 只有在急停、限位、方向、机械空间和人员安全均已确认后，才执行保守运动：
@@ -227,6 +239,7 @@ sudo ./etx_6axis_csp_demo --eni ENI.xml --axes 6
 sudo ./etx_6axis_csp_demo \
   --eni ENI.xml \
   --axes 6 \
+  --cycle-us 500 \
   --enable-motion \
   --cycles 1 \
   --distance 1000 \

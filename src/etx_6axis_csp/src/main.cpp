@@ -1,5 +1,6 @@
 #include "AppConfig.h"
 #include "AxisController.h"
+#include "CycleConfigValidator.h"
 #include "EcpwSession.h"
 #include "EcpwUtil.h"
 
@@ -51,6 +52,43 @@ void servoOffAll(const std::vector<AxisController>& axes)
     }
 }
 
+class MotionGuard {
+public:
+    MotionGuard(const std::vector<AxisController>& axes, U8 groupId)
+        : axes_(axes), groupId_(groupId)
+    {
+    }
+
+    ~MotionGuard()
+    {
+        if (armed_) {
+            cleanup(false);
+        }
+    }
+
+    void arm() { armed_ = true; }
+
+    void complete(bool keepServoOn)
+    {
+        cleanup(keepServoOn);
+        armed_ = false;
+    }
+
+private:
+    void cleanup(bool keepServoOn) const
+    {
+        ECPWGroupStop(groupId_, ECP_STOP_SMOOTH);
+        ECPWGroupDisable(groupId_);
+        if (!keepServoOn) {
+            servoOffAll(axes_);
+        }
+    }
+
+    const std::vector<AxisController>& axes_;
+    U8 groupId_;
+    bool armed_ = false;
+};
+
 void setupGroup(const std::vector<AxisController>& axes, U8 groupId)
 {
     ECPWGroupDisable(groupId);
@@ -68,11 +106,6 @@ void setupGroup(const std::vector<AxisController>& axes, U8 groupId)
     }
 
     throwOnEcpError("GroupEnable", ECPWGroupEnable(groupId));
-}
-
-void disableGroup(U8 groupId)
-{
-    ECPWGroupDisable(groupId);
 }
 
 void moveGroupRelative(U8 groupId, size_t axisCount, double distance, const AppConfig& config)
@@ -106,12 +139,14 @@ int main(int argc, char** argv)
 
     try {
         const AppConfig config = parseArgs(argc, argv);
+        validateCycleConfiguration(config);
 
         std::printf("ETX 6-axis CSP demo starting\n");
-        std::printf("axes=%d firstStation=%d axisNo=%d cycles=%d distance=%.3f motion=%s\n",
+        std::printf("axes=%d firstStation=%d axisNo=%d cycleUs=%d cycles=%d distance=%.3f motion=%s\n",
                     config.axisCount,
                     config.firstStation,
                     config.axisNo,
+                    config.cycleTimeUs,
                     config.cycles,
                     config.distance,
                     config.enableMotion ? "ENABLED" : "DISABLED");
@@ -133,6 +168,8 @@ int main(int argc, char** argv)
         }
 
         constexpr U8 groupId = 0;
+        MotionGuard motionGuard(axes, groupId);
+        motionGuard.arm();
         for (const auto& axis : axes) {
             axis.servoOn(config);
         }
@@ -158,11 +195,7 @@ int main(int argc, char** argv)
             waitSettle(config.settleSeconds);
         }
 
-        ECPWGroupStop(groupId, ECP_STOP_SMOOTH);
-        disableGroup(groupId);
-        if (!config.keepServoOn) {
-            servoOffAll(axes);
-        }
+        motionGuard.complete(config.keepServoOn);
 
         std::printf("ETX 6-axis CSP demo complete\n");
         return 0;

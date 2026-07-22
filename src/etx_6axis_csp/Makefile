@@ -11,6 +11,7 @@ BUILD_DIR := build
 SRCS := \
 	$(SRC_DIR)/AppConfig.cpp \
 	$(SRC_DIR)/AxisController.cpp \
+	$(SRC_DIR)/CycleConfigValidator.cpp \
 	$(SRC_DIR)/EcpwSession.cpp \
 	$(SRC_DIR)/main.cpp
 
@@ -41,4 +42,3 @@ clean:
 	rm -rf $(BUILD_DIR) $(TARGET)
 
 -include $(DEPS)
-

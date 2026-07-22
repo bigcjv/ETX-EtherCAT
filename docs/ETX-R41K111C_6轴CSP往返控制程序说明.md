@@ -13,6 +13,8 @@
 - `ECPWSetMOP(..., ECP_MOP_CSP)` 将每个轴切到 CSP。
 - `ECPWGroupAddAxis()` 将 6 个轴加入 Group 0。
 - `ECPWGroupMoveLin()` 让 6 个轴同步做相对往返运动。
+- 启动前要求 ETX `Setting.json`、六轴 DC ENI 和寄存器写入全部为 500 us。
+- 读取六台驱动器错误码；异常时通过 RAII 平滑停止、禁用 Group 并 Servo OFF。
 
 程序默认不会运动，必须显式加 `--enable-motion`。
 
@@ -111,22 +113,22 @@ ECPWInit err=10
 
 ## Win11 部署到 ETX
 
-部署并编译：
+准备 ECATNavi 重新导出 500 us ENI（必须先确认六轴停止并 Servo OFF）：
 
 ```powershell
-.\scripts\deploy_etx_6axis_csp.ps1 -Password "123" -Build
+.\scripts\deploy_etx_6axis_csp.ps1 -Password "<ETX_PASSWORD>" -CycleTimeUs 500 -PrepareEniExport -ConfirmAxesStoppedAndServoOff
 ```
 
-部署、编译并做不运动检查：
+替换项目 ENI 后，切换 Scenario 1、部署、编译并做不运动检查：
 
 ```powershell
-.\scripts\deploy_etx_6axis_csp.ps1 -Password "123" -Build -RunDryCheck
+.\scripts\deploy_etx_6axis_csp.ps1 -Password "<ETX_PASSWORD>" -CycleTimeUs 500 -ConfigureCycleTime -ActivateScenario1 -Build -RunDryCheck
 ```
 
-部署、编译并运行默认低速同步往返：
+只有 dry check 通过且机械安全全部确认后，才允许默认低速同步往返：
 
 ```powershell
-.\scripts\deploy_etx_6axis_csp.ps1 -Password "123" -Build -RunMotion
+.\scripts\deploy_etx_6axis_csp.ps1 -Password "<ETX_PASSWORD>" -CycleTimeUs 500 -ActivateScenario1 -Build -RunDryCheck -RunMotion -ConfirmMotionSafety
 ```
 
 ## 手动运行
@@ -135,7 +137,7 @@ ECPWInit err=10
 
 ```bash
 cd /home/tpm/etx_6axis_csp
-sudo ./etx_6axis_csp_demo --eni ENI.xml --axes 6
+sudo ./etx_6axis_csp_demo --eni ENI.xml --axes 6 --cycle-us 500
 ```
 
 同步低速往返：
@@ -151,6 +153,7 @@ sudo ./etx_6axis_csp_demo --eni ENI.xml --axes 6 --enable-motion --cycles 3 --di
 --axes N             轴数，默认 6
 --first-station N    第一台驱动器 EtherCAT serial station，默认 1
 --axis-no N          每个 A6B 内部轴号，默认 0
+--cycle-us US        必须与主站和六轴 DC ENI 一致，默认 500
 --cycles N           往返循环次数，默认 1
 --distance U         相对移动距离，单位为 user unit
 --feed U_PER_SEC     速度
@@ -167,4 +170,3 @@ sudo ./etx_6axis_csp_demo --eni ENI.xml --axes 6 --enable-motion --cycles 3 --di
 3. 确认急停、限位、安全回路有效。
 4. 逐轴确认方向后，再运行 6 轴同步。
 5. 如果方向不对，优先修改驱动器/机械方向参数，不要在多层软件里反号。
-
