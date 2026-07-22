@@ -1,0 +1,8 @@
+后续你可以用这个命令连接：
+
+& "C:\Program Files\PuTTY\plink.exe" -ssh tpm@192.168.0.10 -hostkey "SHA256:xBzCH8w5lTi3ExQakSZm9lXGXlcDDXBhhNumThbSNGE"
+
+用户名：tpm
+SSH 密码: 24910836  24910836 是 EtxTool 1.0.3.0 内置的固定 SSH 密码，
+需要正常使用 EtxTool 时建议保留 24910836。
+除非能修改并重新编译 EtxTool，否则无法同时使用密码 123 并保持其版本查询功能正常。

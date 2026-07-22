@@ -142,6 +142,7 @@ sudo ./etx_6axis_csp_demo --eni ENI.xml --axes 6
 
 ```bash
 sudo ./etx_6axis_csp_demo --eni ENI.xml --axes 6 --enable-motion --cycles 3 --distance 1000000 --feed 200000 --accel 200000 --decel 200000
+sudo ./etx_6axis_csp_demo --eni ENI.xml --axes 6 --enable-motion --cycles 3 --distance 1000000 --feed 4000000 --accel 4000000 --decel 4000000
 ```
 
 ## 常用参数

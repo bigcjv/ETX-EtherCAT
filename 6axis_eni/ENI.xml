@@ -176,7 +176,7 @@
           <DefaultSize>9</DefaultSize>
           <StartAddress>5120</StartAddress>
           <ControlByte>100</ControlByte>
-          <Enable>true</Enable>
+          <Enable>false</Enable>
           <Pdo>5632</Pdo>
         </Sm2>
         <Sm3>
@@ -184,7 +184,7 @@
           <DefaultSize>23</DefaultSize>
           <StartAddress>5632</StartAddress>
           <ControlByte>32</ControlByte>
-          <Enable>true</Enable>
+          <Enable>false</Enable>
           <Pdo>6656</Pdo>
         </Sm3>
         <TxPdo Sm="3">
@@ -516,6 +516,17 @@
           <Timeout>5000</Timeout>
         </InitCmd>
         <InitCmd>
+          <Transition>SI</Transition>
+          <Transition>OI</Transition>
+          <Comment>clear DC activation</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>2</Cmd>
+          <Adp>0</Adp>
+          <Ado>2432</Ado>
+          <Data>0000</Data>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
           <Transition>PI</Transition>
           <Transition>SI</Transition>
           <Transition>OI</Transition>
@@ -711,6 +722,60 @@
           <Retries>3</Retries>
         </InitCmd>
         <InitCmd>
+          <Transition>PS</Transition>
+          <Comment>set DC cycle time</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1001</Adp>
+          <Ado>2464</Ado>
+          <Data>40420F0000000000</Data>
+          <Cnt>1</Cnt>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
+          <Transition>PS</Transition>
+          <Comment>set DC start time</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1001</Adp>
+          <Ado>2448</Ado>
+          <Data>0000000000000000</Data>
+          <Cnt>1</Cnt>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
+          <Transition>PS</Transition>
+          <Comment>set DC activation</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1001</Adp>
+          <Ado>2432</Ado>
+          <Data>0003</Data>
+          <Cnt>1</Cnt>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
+          <Transition>PS</Transition>
+          <Comment>set DC latch cfg</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1001</Adp>
+          <Ado>2472</Ado>
+          <Data>0000</Data>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
+          <Transition>IP</Transition>
+          <Transition>PP</Transition>
+          <Comment>clear DC activation</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1001</Adp>
+          <Ado>2432</Ado>
+          <Data>0000</Data>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
           <Transition>SP</Transition>
           <Transition>OP</Transition>
           <Comment>set device state to PREOP</Comment>
@@ -831,6 +896,17 @@
           <Adp>1001</Adp>
           <Ado>1568</Ado>
           <Data>00000000000000000000000000000000</Data>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
+          <Transition>SP</Transition>
+          <Transition>OP</Transition>
+          <Comment>clear DC activation</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1001</Adp>
+          <Ado>2432</Ado>
+          <Data>0000</Data>
           <Retries>3</Retries>
         </InitCmd>
         <InitCmd>
@@ -1010,6 +1086,12 @@
           </Validate>
         </InitCmd>
       </InitCmds>
+      <DC>
+        <ReferenceClock>true</ReferenceClock>
+        <CycleTime0>1000000</CycleTime0>
+        <CycleTime1>1000000</CycleTime1>
+        <ShiftTime>0</ShiftTime>
+      </DC>
     </Slave>
     <Slave>
       <Info>
@@ -1036,7 +1118,7 @@
           <DefaultSize>9</DefaultSize>
           <StartAddress>5120</StartAddress>
           <ControlByte>100</ControlByte>
-          <Enable>true</Enable>
+          <Enable>false</Enable>
           <Pdo>5632</Pdo>
         </Sm2>
         <Sm3>
@@ -1044,7 +1126,7 @@
           <DefaultSize>23</DefaultSize>
           <StartAddress>5632</StartAddress>
           <ControlByte>32</ControlByte>
-          <Enable>true</Enable>
+          <Enable>false</Enable>
           <Pdo>6656</Pdo>
         </Sm3>
         <TxPdo Sm="3">
@@ -1376,6 +1458,17 @@
           <Timeout>5000</Timeout>
         </InitCmd>
         <InitCmd>
+          <Transition>SI</Transition>
+          <Transition>OI</Transition>
+          <Comment>clear DC activation</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>2</Cmd>
+          <Adp>65535</Adp>
+          <Ado>2432</Ado>
+          <Data>0000</Data>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
           <Transition>PI</Transition>
           <Transition>SI</Transition>
           <Transition>OI</Transition>
@@ -1571,6 +1664,60 @@
           <Retries>3</Retries>
         </InitCmd>
         <InitCmd>
+          <Transition>PS</Transition>
+          <Comment>set DC cycle time</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1002</Adp>
+          <Ado>2464</Ado>
+          <Data>40420F0000000000</Data>
+          <Cnt>1</Cnt>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
+          <Transition>PS</Transition>
+          <Comment>set DC start time</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1002</Adp>
+          <Ado>2448</Ado>
+          <Data>0000000000000000</Data>
+          <Cnt>1</Cnt>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
+          <Transition>PS</Transition>
+          <Comment>set DC activation</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1002</Adp>
+          <Ado>2432</Ado>
+          <Data>0003</Data>
+          <Cnt>1</Cnt>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
+          <Transition>PS</Transition>
+          <Comment>set DC latch cfg</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1002</Adp>
+          <Ado>2472</Ado>
+          <Data>0000</Data>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
+          <Transition>IP</Transition>
+          <Transition>PP</Transition>
+          <Comment>clear DC activation</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1002</Adp>
+          <Ado>2432</Ado>
+          <Data>0000</Data>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
           <Transition>SP</Transition>
           <Transition>OP</Transition>
           <Comment>set device state to PREOP</Comment>
@@ -1691,6 +1838,17 @@
           <Adp>1002</Adp>
           <Ado>1568</Ado>
           <Data>00000000000000000000000000000000</Data>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
+          <Transition>SP</Transition>
+          <Transition>OP</Transition>
+          <Comment>clear DC activation</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1002</Adp>
+          <Ado>2432</Ado>
+          <Data>0000</Data>
           <Retries>3</Retries>
         </InitCmd>
         <InitCmd>
@@ -1870,6 +2028,12 @@
           </Validate>
         </InitCmd>
       </InitCmds>
+      <DC>
+        <ReferenceClock>false</ReferenceClock>
+        <CycleTime0>1000000</CycleTime0>
+        <CycleTime1>1000000</CycleTime1>
+        <ShiftTime>0</ShiftTime>
+      </DC>
     </Slave>
     <Slave>
       <Info>
@@ -1896,7 +2060,7 @@
           <DefaultSize>9</DefaultSize>
           <StartAddress>5120</StartAddress>
           <ControlByte>100</ControlByte>
-          <Enable>true</Enable>
+          <Enable>false</Enable>
           <Pdo>5632</Pdo>
         </Sm2>
         <Sm3>
@@ -1904,7 +2068,7 @@
           <DefaultSize>23</DefaultSize>
           <StartAddress>5632</StartAddress>
           <ControlByte>32</ControlByte>
-          <Enable>true</Enable>
+          <Enable>false</Enable>
           <Pdo>6656</Pdo>
         </Sm3>
         <TxPdo Sm="3">
@@ -2236,6 +2400,17 @@
           <Timeout>5000</Timeout>
         </InitCmd>
         <InitCmd>
+          <Transition>SI</Transition>
+          <Transition>OI</Transition>
+          <Comment>clear DC activation</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>2</Cmd>
+          <Adp>65534</Adp>
+          <Ado>2432</Ado>
+          <Data>0000</Data>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
           <Transition>PI</Transition>
           <Transition>SI</Transition>
           <Transition>OI</Transition>
@@ -2431,6 +2606,60 @@
           <Retries>3</Retries>
         </InitCmd>
         <InitCmd>
+          <Transition>PS</Transition>
+          <Comment>set DC cycle time</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1003</Adp>
+          <Ado>2464</Ado>
+          <Data>40420F0000000000</Data>
+          <Cnt>1</Cnt>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
+          <Transition>PS</Transition>
+          <Comment>set DC start time</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1003</Adp>
+          <Ado>2448</Ado>
+          <Data>0000000000000000</Data>
+          <Cnt>1</Cnt>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
+          <Transition>PS</Transition>
+          <Comment>set DC activation</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1003</Adp>
+          <Ado>2432</Ado>
+          <Data>0003</Data>
+          <Cnt>1</Cnt>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
+          <Transition>PS</Transition>
+          <Comment>set DC latch cfg</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1003</Adp>
+          <Ado>2472</Ado>
+          <Data>0000</Data>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
+          <Transition>IP</Transition>
+          <Transition>PP</Transition>
+          <Comment>clear DC activation</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1003</Adp>
+          <Ado>2432</Ado>
+          <Data>0000</Data>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
           <Transition>SP</Transition>
           <Transition>OP</Transition>
           <Comment>set device state to PREOP</Comment>
@@ -2551,6 +2780,17 @@
           <Adp>1003</Adp>
           <Ado>1568</Ado>
           <Data>00000000000000000000000000000000</Data>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
+          <Transition>SP</Transition>
+          <Transition>OP</Transition>
+          <Comment>clear DC activation</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1003</Adp>
+          <Ado>2432</Ado>
+          <Data>0000</Data>
           <Retries>3</Retries>
         </InitCmd>
         <InitCmd>
@@ -2730,6 +2970,12 @@
           </Validate>
         </InitCmd>
       </InitCmds>
+      <DC>
+        <ReferenceClock>false</ReferenceClock>
+        <CycleTime0>1000000</CycleTime0>
+        <CycleTime1>1000000</CycleTime1>
+        <ShiftTime>0</ShiftTime>
+      </DC>
     </Slave>
     <Slave>
       <Info>
@@ -2756,7 +3002,7 @@
           <DefaultSize>9</DefaultSize>
           <StartAddress>5120</StartAddress>
           <ControlByte>100</ControlByte>
-          <Enable>true</Enable>
+          <Enable>false</Enable>
           <Pdo>5632</Pdo>
         </Sm2>
         <Sm3>
@@ -2764,7 +3010,7 @@
           <DefaultSize>23</DefaultSize>
           <StartAddress>5632</StartAddress>
           <ControlByte>32</ControlByte>
-          <Enable>true</Enable>
+          <Enable>false</Enable>
           <Pdo>6656</Pdo>
         </Sm3>
         <TxPdo Sm="3">
@@ -3096,6 +3342,17 @@
           <Timeout>5000</Timeout>
         </InitCmd>
         <InitCmd>
+          <Transition>SI</Transition>
+          <Transition>OI</Transition>
+          <Comment>clear DC activation</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>2</Cmd>
+          <Adp>65533</Adp>
+          <Ado>2432</Ado>
+          <Data>0000</Data>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
           <Transition>PI</Transition>
           <Transition>SI</Transition>
           <Transition>OI</Transition>
@@ -3291,6 +3548,60 @@
           <Retries>3</Retries>
         </InitCmd>
         <InitCmd>
+          <Transition>PS</Transition>
+          <Comment>set DC cycle time</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1004</Adp>
+          <Ado>2464</Ado>
+          <Data>40420F0000000000</Data>
+          <Cnt>1</Cnt>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
+          <Transition>PS</Transition>
+          <Comment>set DC start time</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1004</Adp>
+          <Ado>2448</Ado>
+          <Data>0000000000000000</Data>
+          <Cnt>1</Cnt>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
+          <Transition>PS</Transition>
+          <Comment>set DC activation</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1004</Adp>
+          <Ado>2432</Ado>
+          <Data>0003</Data>
+          <Cnt>1</Cnt>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
+          <Transition>PS</Transition>
+          <Comment>set DC latch cfg</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1004</Adp>
+          <Ado>2472</Ado>
+          <Data>0000</Data>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
+          <Transition>IP</Transition>
+          <Transition>PP</Transition>
+          <Comment>clear DC activation</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1004</Adp>
+          <Ado>2432</Ado>
+          <Data>0000</Data>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
           <Transition>SP</Transition>
           <Transition>OP</Transition>
           <Comment>set device state to PREOP</Comment>
@@ -3411,6 +3722,17 @@
           <Adp>1004</Adp>
           <Ado>1568</Ado>
           <Data>00000000000000000000000000000000</Data>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
+          <Transition>SP</Transition>
+          <Transition>OP</Transition>
+          <Comment>clear DC activation</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1004</Adp>
+          <Ado>2432</Ado>
+          <Data>0000</Data>
           <Retries>3</Retries>
         </InitCmd>
         <InitCmd>
@@ -3590,6 +3912,12 @@
           </Validate>
         </InitCmd>
       </InitCmds>
+      <DC>
+        <ReferenceClock>false</ReferenceClock>
+        <CycleTime0>1000000</CycleTime0>
+        <CycleTime1>1000000</CycleTime1>
+        <ShiftTime>0</ShiftTime>
+      </DC>
     </Slave>
     <Slave>
       <Info>
@@ -3616,7 +3944,7 @@
           <DefaultSize>9</DefaultSize>
           <StartAddress>5120</StartAddress>
           <ControlByte>100</ControlByte>
-          <Enable>true</Enable>
+          <Enable>false</Enable>
           <Pdo>5632</Pdo>
         </Sm2>
         <Sm3>
@@ -3624,7 +3952,7 @@
           <DefaultSize>23</DefaultSize>
           <StartAddress>5632</StartAddress>
           <ControlByte>32</ControlByte>
-          <Enable>true</Enable>
+          <Enable>false</Enable>
           <Pdo>6656</Pdo>
         </Sm3>
         <TxPdo Sm="3">
@@ -3956,6 +4284,17 @@
           <Timeout>5000</Timeout>
         </InitCmd>
         <InitCmd>
+          <Transition>SI</Transition>
+          <Transition>OI</Transition>
+          <Comment>clear DC activation</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>2</Cmd>
+          <Adp>65532</Adp>
+          <Ado>2432</Ado>
+          <Data>0000</Data>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
           <Transition>PI</Transition>
           <Transition>SI</Transition>
           <Transition>OI</Transition>
@@ -4151,6 +4490,60 @@
           <Retries>3</Retries>
         </InitCmd>
         <InitCmd>
+          <Transition>PS</Transition>
+          <Comment>set DC cycle time</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1005</Adp>
+          <Ado>2464</Ado>
+          <Data>40420F0000000000</Data>
+          <Cnt>1</Cnt>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
+          <Transition>PS</Transition>
+          <Comment>set DC start time</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1005</Adp>
+          <Ado>2448</Ado>
+          <Data>0000000000000000</Data>
+          <Cnt>1</Cnt>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
+          <Transition>PS</Transition>
+          <Comment>set DC activation</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1005</Adp>
+          <Ado>2432</Ado>
+          <Data>0003</Data>
+          <Cnt>1</Cnt>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
+          <Transition>PS</Transition>
+          <Comment>set DC latch cfg</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1005</Adp>
+          <Ado>2472</Ado>
+          <Data>0000</Data>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
+          <Transition>IP</Transition>
+          <Transition>PP</Transition>
+          <Comment>clear DC activation</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1005</Adp>
+          <Ado>2432</Ado>
+          <Data>0000</Data>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
           <Transition>SP</Transition>
           <Transition>OP</Transition>
           <Comment>set device state to PREOP</Comment>
@@ -4271,6 +4664,17 @@
           <Adp>1005</Adp>
           <Ado>1568</Ado>
           <Data>00000000000000000000000000000000</Data>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
+          <Transition>SP</Transition>
+          <Transition>OP</Transition>
+          <Comment>clear DC activation</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1005</Adp>
+          <Ado>2432</Ado>
+          <Data>0000</Data>
           <Retries>3</Retries>
         </InitCmd>
         <InitCmd>
@@ -4450,6 +4854,12 @@
           </Validate>
         </InitCmd>
       </InitCmds>
+      <DC>
+        <ReferenceClock>false</ReferenceClock>
+        <CycleTime0>1000000</CycleTime0>
+        <CycleTime1>1000000</CycleTime1>
+        <ShiftTime>0</ShiftTime>
+      </DC>
     </Slave>
     <Slave>
       <Info>
@@ -4476,7 +4886,7 @@
           <DefaultSize>9</DefaultSize>
           <StartAddress>5120</StartAddress>
           <ControlByte>100</ControlByte>
-          <Enable>true</Enable>
+          <Enable>false</Enable>
           <Pdo>5632</Pdo>
         </Sm2>
         <Sm3>
@@ -4484,7 +4894,7 @@
           <DefaultSize>23</DefaultSize>
           <StartAddress>5632</StartAddress>
           <ControlByte>32</ControlByte>
-          <Enable>true</Enable>
+          <Enable>false</Enable>
           <Pdo>6656</Pdo>
         </Sm3>
         <TxPdo Sm="3">
@@ -4816,6 +5226,17 @@
           <Timeout>5000</Timeout>
         </InitCmd>
         <InitCmd>
+          <Transition>SI</Transition>
+          <Transition>OI</Transition>
+          <Comment>clear DC activation</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>2</Cmd>
+          <Adp>65531</Adp>
+          <Ado>2432</Ado>
+          <Data>0000</Data>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
           <Transition>PI</Transition>
           <Transition>SI</Transition>
           <Transition>OI</Transition>
@@ -5011,6 +5432,60 @@
           <Retries>3</Retries>
         </InitCmd>
         <InitCmd>
+          <Transition>PS</Transition>
+          <Comment>set DC cycle time</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1006</Adp>
+          <Ado>2464</Ado>
+          <Data>40420F0000000000</Data>
+          <Cnt>1</Cnt>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
+          <Transition>PS</Transition>
+          <Comment>set DC start time</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1006</Adp>
+          <Ado>2448</Ado>
+          <Data>0000000000000000</Data>
+          <Cnt>1</Cnt>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
+          <Transition>PS</Transition>
+          <Comment>set DC activation</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1006</Adp>
+          <Ado>2432</Ado>
+          <Data>0003</Data>
+          <Cnt>1</Cnt>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
+          <Transition>PS</Transition>
+          <Comment>set DC latch cfg</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1006</Adp>
+          <Ado>2472</Ado>
+          <Data>0000</Data>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
+          <Transition>IP</Transition>
+          <Transition>PP</Transition>
+          <Comment>clear DC activation</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1006</Adp>
+          <Ado>2432</Ado>
+          <Data>0000</Data>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
           <Transition>SP</Transition>
           <Transition>OP</Transition>
           <Comment>set device state to PREOP</Comment>
@@ -5131,6 +5606,17 @@
           <Adp>1006</Adp>
           <Ado>1568</Ado>
           <Data>00000000000000000000000000000000</Data>
+          <Retries>3</Retries>
+        </InitCmd>
+        <InitCmd>
+          <Transition>SP</Transition>
+          <Transition>OP</Transition>
+          <Comment>clear DC activation</Comment>
+          <Requires>cycle</Requires>
+          <Cmd>5</Cmd>
+          <Adp>1006</Adp>
+          <Ado>2432</Ado>
+          <Data>0000</Data>
           <Retries>3</Retries>
         </InitCmd>
         <InitCmd>
@@ -5310,6 +5796,12 @@
           </Validate>
         </InitCmd>
       </InitCmds>
+      <DC>
+        <ReferenceClock>false</ReferenceClock>
+        <CycleTime0>1000000</CycleTime0>
+        <CycleTime1>1000000</CycleTime1>
+        <ShiftTime>0</ShiftTime>
+      </DC>
     </Slave>
     <Cyclic>
       <Frame>
