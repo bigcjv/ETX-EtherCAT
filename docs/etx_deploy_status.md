@@ -2,55 +2,42 @@
 
 Date: 2026-07-22
 
-## Git status
+## Verified state
 
-- `ebed153 feat: guard 500us six-axis control` was pushed to `origin/master`.
-- `7648828 fix: wait for ETX scenario service` was committed locally after the first Scenario 2
-  run exposed a startup-delay false failure.
-- A push attempt then failed because `github.com:443` was unreachable. Retry with
-  `git push origin master`; the local commits are preserved.
+- `6axis_eni/ENI_3_fixed_6axis_500us.xml` contains six `MADLT05BF` slaves and six DC nodes.
+- All six `CycleTime0/1` values are `500000 ns`; all six ESC cycle writes are
+  `20A1070000000000`; DC activation is `0003`; Drive 1 is the only reference clock.
+- The file is semantically identical to `ENI_3.xml` after applying only the intended 500 us
+  cycle changes. Its SHA-256 is
+  `2a61999da8cfa70835450c08e0030e649ff17b7c429d19ef4546e468f7292449`.
+- ETX `/usr/lib/ECPL/Config/Setting.json` is valid JSON with `CycleTime=500` and
+  `ENABLE_DC=true`.
+- The active `/usr/lib/ECPL/ENI/ENI.xml` has the same SHA-256 as the local candidate.
+- Scenario 1 owns EtherCAT: `etx.service` is disabled/inactive and no demo process remains.
+- The ARM64 build succeeded. One deployment dry check plus three repeated dry checks all
+  connected six drives, reported no drive alarms, confirmed CSP support, set CSP mode, and
+  disconnected cleanly.
+- No Servo ON or motion command was executed.
 
-## Completed
+## Resolved deployment issue
 
-- SSH connection to `tpm@192.168.0.10` succeeded with the local credential file, which is
-  excluded from this task's commit.
-- Scenario resource state: `etx.service` enabled/active; TCP 5886 listening.
-- ETX `/usr/lib/ECPL/Config/Setting.json`: `CycleTime=500`, `ENABLE_DC=true`.
-- Windows `C:\TPM\ECPW\Config\Setting.json`: `CycleTime=500`, `ENABLE_DC=true`.
-- ETX service log confirms `Cycle time: 500 us`.
-- Updated C++ source uploaded to `/home/tpm/etx_6axis_csp` and built successfully on ARM64.
-- An earlier target-side guard test correctly rejected `--cycle-us 500` before ECPW
-  initialization while the ETX setting was still 1000 us.
+The previous cycle update wrote a literal `\\n` after the closing JSON brace. A later JSON parse
+failed with `Extra data`. The deployment script now repairs only this known trailing sequence and
+writes a real newline. The repaired ETX file passes `python3 -m json.tool`.
 
-## Blocked before 500 us dry check
-
-- Current repository and ECATNavi ENI files contain six DC drives, but only Drive 1 is 500 us;
-  Drive 2–6 remain 1000 us.
-- The ETX setting was backed up and changed to 500 us for Scenario 2 export. No ENI was
-  installed, and no dry check or motion was executed.
-
-Re-apply `DC SYNC0 x1` to all drives, save, verify Drive 2–6 individually, and export again.
-This mixed-cycle ENI was not deployed.
-
-Scenario 2 preparation has completed. For future repetitions, use:
+## Repeat the verified no-motion check
 
 ```powershell
 .\scripts\deploy_etx_6axis_csp.ps1 `
   -Password "<ETX_PASSWORD>" `
-  -CycleTimeUs 500 `
-  -PrepareEniExport `
-  -ConfirmAxesStoppedAndServoOff
-```
-
-Then set all six drives to `DC SYNC0`, `x1`, apply to all, save, export, and replace
-`6axis_eni/ENI.xml`. Final Scenario 1 deployment and no-motion check:
-
-```powershell
-.\scripts\deploy_etx_6axis_csp.ps1 `
-  -Password "<ETX_PASSWORD>" `
+  -EniPath ".\6axis_eni\ENI_3_fixed_6axis_500us.xml" `
   -CycleTimeUs 500 `
   -ConfigureCycleTime `
   -ActivateScenario1 `
   -Build `
   -RunDryCheck
 ```
+
+Before any motion test, confirm emergency stop, limits, clear mechanical space, six-axis direction,
+ECPW user-unit conversion, velocity, and acceleration. The candidate has not yet passed motion
+testing.

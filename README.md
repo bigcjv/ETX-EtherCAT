@@ -137,6 +137,11 @@ ECATNavi 连不上”的情况，应分别检查 SSH 凭据、`etx.service` 和 
 因此当前混合周期 ENI 禁止部署。必须重新执行 `Apply to All` 和 `Save`，逐个确认
 Drive 2–6 也显示 500 us 后再导出；不能手改 XML 周期字节代替导出。
 
+`6axis_eni/ENI_3_fixed_6axis_500us.xml` 是 2026-07-22 基于 `ENI_3.xml` 修正的候选文件。
+它已通过六轴结构校验，并在 ETX Scenario 1 完成 4 次无运动连接检查；远端生效文件
+SHA-256 为 `2a61999da8cfa70835450c08e0030e649ff17b7c429d19ef4546e468f7292449`。
+该结果只验证通信和 CSP 准备，不代表已完成 Servo ON 或运动测试。
+
 ## 6. EtherCAT 通信周期
 
 ETX 主站实际周期由以下文件控制：
@@ -225,12 +230,16 @@ docs/                             详细中文操作说明
 ```powershell
 .\scripts\deploy_etx_6axis_csp.ps1 `
   -Password "<ETX_PASSWORD>" `
+  -EniPath ".\6axis_eni\ENI_3_fixed_6axis_500us.xml" `
   -CycleTimeUs 500 `
   -ConfigureCycleTime `
   -ActivateScenario1 `
   -Build `
   -RunDryCheck
 ```
+
+省略 `-EniPath` 时默认使用 `6axis_eni/ENI.xml`；验证候选文件时必须显式指定路径，
+避免部署到错误的 ENI。
 
 ETX 上手动执行不运动检查：
 

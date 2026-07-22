@@ -5,6 +5,7 @@ param(
     [string]$RemoteDir = "/home/tpm/etx_6axis_csp",
     [string]$HostKey = "SHA256:xBzCH8w5lTi3ExQakSZm9lXGXlcDDXBhhNumThbSNGE",
     [string]$WindowsSettingFile = "C:\TPM\ECPW\Config\Setting.json",
+    [string]$EniPath = "",
     [ValidateSet(125, 250, 500, 1000, 2000, 4000, 8000, 10000)]
     [int]$CycleTimeUs = 500,
     [switch]$PrepareEniExport,
@@ -21,7 +22,11 @@ $ErrorActionPreference = "Stop"
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $projectDir = Join-Path $repoRoot "src\etx_6axis_csp"
-$eniFile = Join-Path $repoRoot "6axis_eni\ENI.xml"
+$eniFile = if ([string]::IsNullOrWhiteSpace($EniPath)) {
+    Join-Path $repoRoot "6axis_eni\ENI.xml"
+} else {
+    (Resolve-Path -LiteralPath $EniPath).Path
+}
 $puttyDir = "C:\Program Files\PuTTY"
 $plink = Join-Path $puttyDir "plink.exe"
 $pscp = Join-Path $puttyDir "pscp.exe"
@@ -126,7 +131,7 @@ function Set-RemoteCycleTime {
     $backupSetting = "import shutil,time; p='/usr/lib/ECPL/Config/Setting.json'; shutil.copy2(p,p+'.bak.'+time.strftime('%Y%m%d_%H%M%S'))"
     Invoke-RemoteSudo "python3 -c $(Quote-BashSingle $backupSetting)"
 
-    $updateSetting = "import json; p='/usr/lib/ECPL/Config/Setting.json'; d=json.load(open(p)); d['CycleTime']=$Microseconds; d['ENABLE_DC']=True; f=open(p,'w'); json.dump(d,f,indent=2); f.write('\\n'); f.close()"
+    $updateSetting = "import json; p='/usr/lib/ECPL/Config/Setting.json'; raw=open(p).read(); raw=raw[:-2] if raw.endswith('\\n') else raw; d=json.loads(raw); d['CycleTime']=$Microseconds; d['ENABLE_DC']=True; f=open(p,'w'); json.dump(d,f,indent=2); f.write('\n'); f.close()"
     Invoke-RemoteSudo "python3 -c $(Quote-BashSingle $updateSetting)"
 }
 
